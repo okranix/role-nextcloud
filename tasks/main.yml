@@ -105,7 +105,7 @@
     conmon_pidfile: "/tmp/nc_conmon.pid"
     image: "{{ nextcloud_image }}"
     image_strict: true
-    publish: "127.0.0.1::80"
+    publish: "8080:80"
     recreate: true
     state: started
     name: "nextcloud"
