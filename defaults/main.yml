@@ -32,3 +32,6 @@ pod_port: 127.0.0.1:40671:80
 # Vars for Nextcloud container
 nextcloud_image: docker.io/nextcloud:production-apache
 nextcloud_container_name: nextcloud
+
+# Vars for nginx-proxy-manager
+npm_image: docker.io/jc21/nginx-proxy-manager:latest

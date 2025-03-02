@@ -16,6 +16,12 @@
     podman_user_uid: "{{ getent_passwd[podman_user][1] }}"
   ignore_errors: "{{ ansible_check_mode }}"
 
+- name: Create the nextcloud_network
+  containers.podman.podman_network:
+    name: nextcloud_network
+  become: true
+  become_user: "{{ podman_user }}"
+
 - name: HTML volume
   containers.podman.podman_volume:
     state: present
@@ -66,6 +72,8 @@
     state: started
     name: "nextcloud_mariadb"
     user: "{{ podman_user_uid }}"
+    network:
+      - nextcloud_network
     env:
       MYSQL_USER: "nextcloud"
       MYSQL_PASSWORD: "{{ mysql_password }}"
@@ -105,11 +113,12 @@
     conmon_pidfile: "/tmp/nc_conmon.pid"
     image: "{{ nextcloud_image }}"
     image_strict: true
-    publish: "8080:80"
     recreate: true
     state: started
     name: "nextcloud"
     user: "{{ podman_user_uid }}"
+    network:
+      - nextcloud_network
     env:
       MYSQL_DATABASE: "nextcloud_db"
       MYSQL_USER: "nextcloud"
@@ -155,3 +164,56 @@
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: "{{ podman_user }}"
+
+- name: Create nginx-proxy-manager container
+  containers.podman.podman_container:
+    name: nginx-proxy-manager
+    image: "{{ npm_image }}"
+    network:
+      - nextcloud_network
+    ports:
+      - "80:80"
+      - "443:443"
+      - "81:81"
+    volume:
+      - "{{ podman_user_home }}/podman/appdate/npm/config:/config"
+      - "{{ podman_user_home }}/podman/appdate/npm/letsencrypt:/etc/letsencrypt"
+      - "{{ podman_user_home }}/podman/appdate/npm/data:/data"
+    env:
+      DB_SQLITE_FILE: "/config/database.sqlite"
+      DISABLE_IPV6: "true"
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Create systemd-unit for nginx-proxy-manager container
+  containers.podman.podman_generate_systemd:
+    name: "nginx-proxy-manager"
+    dest: "{{ podman_user_home }}/.config/systemd/user/"
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Nginx-proxy-manager container must be started and enabled on systemd
+  ansible.builtin.systemd:
+    name: container-nginx-proxy-manager
+    scope: user
+    daemon_reload: true
+    state: started
+    enabled: true
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Open ports for nginx-proxy-manager
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_ports:
+      - "80"
+      - "443"
+      - "81"
+    jump: ACCEPT
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: root
