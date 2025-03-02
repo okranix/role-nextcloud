@@ -1,0 +1,163 @@
+---
+# tasks file for nextcloud_podman_setup
+- name: Get home directory of podman user
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ podman_user }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Set home directory var for deploy user
+  ansible.builtin.set_fact:
+    podman_user_home: "{{ getent_passwd[podman_user][4] }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Set uid var for deploy user
+  ansible.builtin.set_fact:
+    podman_user_uid: "{{ getent_passwd[podman_user][1] }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: HTML volume
+  containers.podman.podman_volume:
+    state: present
+    name: "nextcloud_html_volume"
+    recreate: false
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Volume for installed/modified apps
+  containers.podman.podman_volume:
+    state: present
+    name: "nextcloud_app_volume"
+    recreate: false
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Volume for local configuration
+  containers.podman.podman_volume:
+    state: present
+    name: "nextcloud_config_volume"
+    recreate: false
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Volume for the actual data of Nextcloud
+  containers.podman.podman_volume:
+    state: present
+    name: "nextcloud_data_volume"
+    recreate: false
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Volume for the MySQL data files
+  containers.podman.podman_volume:
+    state: present
+    name: "mysql_data_volume"
+    recreate: false
+  become: true
+  become_user: "{{ podman_user }}"
+
+# - name: Pull latest Nextcloud image with tag production-apache
+#  containers.podman.podman_image:
+#    name: docker.io/nextcloud
+#    tag: production-apache
+#    state: present
+
+- name: Create MariaDB container
+  containers.podman.podman_container:
+    debug: true
+    conmon_pidfile: "/tmp/mariadb_conmon.pid"
+    image: "{{ mariadb_image }}"
+    image_strict: true
+    recreate: true
+    state: started
+    name: "nextcloud_mariadb"
+    user: "{{ podman_user_uid }}"
+    env:
+      MYSQL_USER: "nextcloud"
+      MYSQL_PASSWORD: "{{ mysql_password }}"
+      MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
+      MYSQL_DATABASE: "nextcloud_db"
+    volume: "mysql_data_volume:/var/lib/mysql:Z"
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Wait for DB to initilize
+  ansible.builtin.wait_for:
+    timeout: 20
+
+- name: Create systemd-unit for MariaDB container
+  containers.podman.podman_generate_systemd:
+    name: "nextcloud_mariadb"
+    dest: "{{ podman_user_home }}/.config/systemd/user/"
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: MariaDB container must be started and enabled on systemd
+  ansible.builtin.systemd:
+    name: container-nextcloud_mariadb
+    scope: user
+    daemon_reload: true
+    state: started
+    enabled: true
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Create Nextcloud container
+  containers.podman.podman_container:
+    debug: false
+    conmon_pidfile: "/tmp/nc_conmon.pid"
+    image: "{{ nextcloud_image }}"
+    image_strict: true
+    publish: "127.0.0.1::80"
+    recreate: true
+    state: started
+    name: "nextcloud"
+    user: "{{ podman_user_uid }}"
+    env:
+      MYSQL_DATABASE: "nextcloud_db"
+      MYSQL_USER: "nextcloud"
+      MYSQL_PASSWORD: "{{ mysql_password }}"
+      MYSQL_HOST: "{{ mysql_host }}"
+      NEXTCLOUD_ADMIN_USER: "nextcloudadm"
+      NEXTCLOUD_ADMIN_PASSWORD: "{{ nextcloud_admin_password }}"
+      NEXTCLOUD_TRUSTED_DOMAINS: "{{ nextcloud_trusted_domains }}"
+      SMTP_HOST: "{{ smtp_host }}"
+      SMTP_SECURE: "{{ smtp_secure }}"
+      SMTP_PORT: "{{ smtp_port }}"
+      SMTP_AUTHTYPE: "{{ smtp_authtype }}"
+      SMTP_NAME: "{{ smtp_name }}"
+      SMTP_PASSWORD: "{{ smtp_password }}"
+      MAIL_FROM_ADDRESS: "{{ mail_from_address }}"
+      MAIL_DOMAIN: "{{ mail_domain }}"
+      OVERWRITEPROTOCOL: "{{ nextcloud_overwriteprotocol }}"
+      OVERWRITECLIURL: "{{ nextcloud_overwritecliurl }}"
+    volume:
+      - "nextcloud_html_volume:/var/www/html:Z"
+      - "nextcloud_app_volume:/var/www/html/custom_apps:Z"
+      - "nextcloud_config_volume:/var/www/html/config:Z"
+      - "nextcloud_data_volume:/var/www/html/data:Z"
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Create systemd-unit for Nextcloud container
+  containers.podman.podman_generate_systemd:
+    name: "nextcloud"
+    dest: "{{ podman_user_home }}/.config/systemd/user/"
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: MariaDB container must be started and enabled on systemd
+  ansible.builtin.systemd:
+    name: container-nextcloud
+    scope: user
+    daemon_reload: true
+    state: started
+    enabled: true
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
