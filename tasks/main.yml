@@ -91,6 +91,9 @@
       MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
       MYSQL_DATABASE: "nextcloud_db"
     volume: "{{ podman_user_home }}/nextcloud/mysql:/var/lib/mysql:Z"
+    generate_systemd:
+      path: "{{ podman_user_home }}/.config/systemd/user"
+      restart_policy: always
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: "{{ podman_user }}"
@@ -98,14 +101,6 @@
 - name: Wait for DB to initilize
   ansible.builtin.wait_for:
     timeout: 20
-
-- name: Create systemd-unit for MariaDB container
-  containers.podman.podman_generate_systemd:
-    name: "nextcloud_mariadb"
-    dest: "{{ podman_user_home }}/.config/systemd/user/"
-  ignore_errors: "{{ ansible_check_mode }}"
-  become: true
-  become_user: "{{ podman_user }}"
 
 - name: MariaDB container must be started and enabled on systemd
   ansible.builtin.systemd:
@@ -153,14 +148,9 @@
       - "{{ podman_user_home }}/nextcloud/appdata/app:/var/www/html/custom_apps:Z"
       - "{{ podman_user_home }}/nextcloud/appdata/config:/var/www/html/config:Z"
       - "{{ podman_user_home }}/nextcloud/data:/var/www/html/data:Z"
-  ignore_errors: "{{ ansible_check_mode }}"
-  become: true
-  become_user: "{{ podman_user }}"
-
-- name: Create systemd-unit for Nextcloud container
-  containers.podman.podman_generate_systemd:
-    name: "nextcloud"
-    dest: "{{ podman_user_home }}/.config/systemd/user/"
+    generate_systemd:
+      path: "{{ podman_user_home }}/.config/systemd/user"
+      restart_policy: always
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: "{{ podman_user }}"
