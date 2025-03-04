@@ -22,45 +22,56 @@
   become: true
   become_user: "{{ podman_user }}"
 
-- name: HTML volume
-  containers.podman.podman_volume:
-    state: present
-    name: "nextcloud_html_volume"
-    recreate: false
+- name: Ensure appdata directory for nextcloud HTML
+  ansible.builtin.file:
+    path: "{{ podman_user_home }}/nextcloud/appdata/html"
+    state: directory
+    owner: "{{ podman_user }}"
+    group: "{{ podman_user }}"
+    mode: "0750"
   become: true
   become_user: "{{ podman_user }}"
 
-- name: Volume for installed/modified apps
-  containers.podman.podman_volume:
-    state: present
-    name: "nextcloud_app_volume"
-    recreate: false
+- name: Ensure appdata directory for nextcloud apps
+  ansible.builtin.file:
+    path: "{{ podman_user_home }}/nextcloud/appdata/app"
+    state: directory
+    owner: "{{ podman_user }}"
+    group: "{{ podman_user }}"
+    mode: "0750"
   become: true
   become_user: "{{ podman_user }}"
 
-- name: Volume for local configuration
-  containers.podman.podman_volume:
-    state: present
-    name: "nextcloud_config_volume"
-    recreate: false
+- name: Ensure appdata directory for nextcloud config
+  ansible.builtin.file:
+    path: "{{ podman_user_home }}/nextcloud/appdata/config"
+    state: directory
+    owner: "{{ podman_user }}"
+    group: "{{ podman_user }}"
+    mode: "0750"
   become: true
   become_user: "{{ podman_user }}"
 
-- name: Volume for the actual data of Nextcloud
-  containers.podman.podman_volume:
-    state: present
-    name: "nextcloud_data_volume"
-    recreate: false
+- name: Ensure nextcloud data directory
+  ansible.builtin.file:
+    path: "{{ podman_user_home }}/nextcloud/data"
+    state: directory
+    owner: "{{ podman_user }}"
+    group: "{{ podman_user }}"
+    mode: "0750"
   become: true
   become_user: "{{ podman_user }}"
 
-- name: Volume for the MySQL data files
-  containers.podman.podman_volume:
-    state: present
-    name: "mysql_data_volume"
-    recreate: false
+- name: Ensure MySQL directory for nextcloud
+  ansible.builtin.file:
+    path: "{{ podman_user_home }}/nextcloud/mysql"
+    state: directory
+    owner: "{{ podman_user }}"
+    group: "{{ podman_user }}"
+    mode: "0750"
   become: true
   become_user: "{{ podman_user }}"
+
 
 - name: Create MariaDB container
   containers.podman.podman_container:
@@ -79,7 +90,7 @@
       MYSQL_PASSWORD: "{{ mysql_password }}"
       MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
       MYSQL_DATABASE: "nextcloud_db"
-    volume: "mysql_data_volume:/var/lib/mysql:Z"
+    volume: "{{ podman_user_home }}/nextcloud/mysql:/var/lib/mysql:Z"
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: "{{ podman_user }}"
@@ -138,10 +149,10 @@
       OVERWRITEPROTOCOL: "{{ nextcloud_overwriteprotocol }}"
       OVERWRITECLIURL: "{{ nextcloud_overwritecliurl }}"
     volume:
-      - "nextcloud_html_volume:/var/www/html:Z"
-      - "nextcloud_app_volume:/var/www/html/custom_apps:Z"
-      - "nextcloud_config_volume:/var/www/html/config:Z"
-      - "nextcloud_data_volume:/var/www/html/data:Z"
+      - "{{ podman_user_home }}/nextcloud/appdata/html:/var/www/html:Z"
+      - "{{ podman_user_home }}/nextcloud/appdata/app:/var/www/html/custom_apps:Z"
+      - "{{ podman_user_home }}/nextcloud/appdata/config:/var/www/html/config:Z"
+      - "{{ podman_user_home }}/nextcloud/data:/var/www/html/data:Z"
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: "{{ podman_user }}"
