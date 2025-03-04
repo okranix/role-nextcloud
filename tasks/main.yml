@@ -151,6 +151,8 @@
     generate_systemd:
       path: "{{ podman_user_home }}/.config/systemd/user"
       restart_policy: always
+      after:
+        - container-nextcloud_mariadb.service
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: "{{ podman_user }}"
