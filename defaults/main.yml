@@ -12,6 +12,7 @@ mariadb_image: docker.io/mariadb:11.4.5
 
 # Nextcloud vars
 nextcloud_admin_password: VSnfD2021!
+nextcloud_url: nextcloud.mydomain.local
 nextcloud_overwriteprotocol: ""
 nextcloud_overwritecliurl: ""
 nextcloud_trusted_domains: ""
@@ -33,5 +34,6 @@ pod_port: 127.0.0.1:40671:80
 nextcloud_image: docker.io/nextcloud:production-apache
 nextcloud_container_name: nextcloud
 
-# Vars for nginx-proxy-manager
-npm_image: docker.io/jc21/nginx-proxy-manager:latest
+# Vars for traefik
+traefik_image: traefik:v3.3.4
+traefik_api_url: traefik.mydomain.local
