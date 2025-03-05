@@ -27,6 +27,7 @@ Role Variables
 
     # Nextcloud vars
     nextcloud_admin_password: VSnfD2021!
+    nextcloud_url: nextcloud.mydomain.local
     nextcloud_overwriteprotocol: ""
     nextcloud_overwritecliurl: ""
     nextcloud_trusted_domains: ""
@@ -47,6 +48,11 @@ Role Variables
     # Vars for Nextcloud container
     nextcloud_image: docker.io/nextcloud:production-apache
     nextcloud_container_name: nextcloud
+
+    # Vars for traefik
+    traefik_image: traefik:v3.3.4
+    traefik_api_url: traefik.mydomain.local
+
 
 Dependencies
 ------------
