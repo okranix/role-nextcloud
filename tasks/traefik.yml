@@ -30,9 +30,13 @@
 
 - name: Start and enable socket proxy
   ansible.builtin.systemd_service:
-    name: "container-traefik-proxy-*.socket"
+    name: "container-traefik-proxy-{{ item }}.socket"
     scope: user
     state: started
+  loop:
+    - "80"
+    - "443"
+    - "8080"
   become: true
   become_user: "{{ podman_user }}"
 
