@@ -63,11 +63,17 @@
       - "/run/user/{{ podman_user_uid }}/podman/podman.sock:/var/run/docker.sock:z"
     command:
       - --api.insecure=true
-      - --providers.docker
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.endpoint=tcp://container-traefik-proxy-80.socket:80
+      - --providers.docker.endpoint=tcp://container-traefik-proxy-443.socket:443
+      - --providers.docker.endpoint=tcp://container-traefik-proxy-8080.socket:8080
     security_opt:
       - "label:type:container_runtime_t"
     labels:
       traefik.enable: "true"
+      entrypoints.web.address: "80"
+      entrypoints.websecure.address: "443"
+      entrypoints.dashboard.address: "8080"
       traefik.http.routers.traefik.rule: "Host(`{{ traefik_api_url }}`)"
     generate_systemd:
       path: "{{ podman_user_home }}/.config/systemd/user"
