@@ -1,0 +1,6 @@
+[Socket]
+ListenStream=192.168.178.39:80
+Service=container-traefik-proxy@80.service
+
+[Install]
+WantedBy=sockets.target
