@@ -53,6 +53,9 @@
   become: true
   become_user: root
 
+- name: Reset connection to load environment variable
+  ansible.builtin.meta: reset_connection
+
 - name: "Ensure pod autostart after reboot is enabled"
   ansible.builtin.systemd:
     name: podman-restart.service
