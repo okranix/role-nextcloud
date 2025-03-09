@@ -1,0 +1,47 @@
+- name: Setup traefik
+  containers.podman.podman_container:
+    name: traefik
+    conmon_pidfile: "/tmp/traefik_conmon.pid"
+    image: "{{ traefik_image }}"
+    image_strict: true
+    recreate: true
+    state: started
+    user: "{{ podman_user_uid }}"
+    userns: keep-id
+    network:
+      - nextcloud_network
+    publish:
+      - "127.0.0.1:80:80"
+      - "127.0.0.1:443:443"
+      - "127.0.0.1:8080:8080"
+    volume:
+      - "/run/user/{{ podman_user_uid }}/podman/podman.sock:/var/run/docker.sock:z"
+    command:
+      - --api.insecure=true
+      - --providers.docker
+    security_opt:
+      - label=disable
+    labels:
+      traefik.enable: "true"
+      traefik.http.routers.traefik.rule: "Host(`{{ traefik_api_url }}`)"
+    generate_systemd:
+      path: "{{ podman_user_home }}/.config/systemd/user"
+      restart_policy: always
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ podman_user_uid }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Traefik container must be started and enabled on systemd
+  ansible.builtin.systemd:
+    name: container-traefik
+    scope: user
+    daemon_reload: true
+    state: started
+    enabled: true
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ podman_user_uid }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"

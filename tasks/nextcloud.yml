@@ -1,0 +1,59 @@
+- name: Create Nextcloud container
+  containers.podman.podman_container:
+    debug: false
+    conmon_pidfile: "/tmp/nc_conmon.pid"
+    image: "{{ nextcloud_image }}"
+    image_strict: true
+    recreate: false
+    state: started
+    name: "nextcloud"
+    user: "{{ podman_user_uid }}"
+    userns: keep-id
+    network:
+      - nextcloud_network
+    env:
+      MYSQL_DATABASE: "nextcloud_db"
+      MYSQL_USER: "nextcloud"
+      MYSQL_PASSWORD: "{{ mysql_password }}"
+      MYSQL_HOST: "{{ mysql_host }}"
+      NEXTCLOUD_ADMIN_USER: "nextcloudadm"
+      NEXTCLOUD_ADMIN_PASSWORD: "{{ nextcloud_admin_password }}"
+      NEXTCLOUD_TRUSTED_DOMAINS: "{{ nextcloud_trusted_domains }}"
+      SMTP_HOST: "{{ smtp_host }}"
+      SMTP_SECURE: "{{ smtp_secure }}"
+      SMTP_PORT: "{{ smtp_port }}"
+      SMTP_AUTHTYPE: "{{ smtp_authtype }}"
+      SMTP_NAME: "{{ smtp_name }}"
+      SMTP_PASSWORD: "{{ smtp_password }}"
+      MAIL_FROM_ADDRESS: "{{ mail_from_address }}"
+      MAIL_DOMAIN: "{{ mail_domain }}"
+      OVERWRITEPROTOCOL: "{{ nextcloud_overwriteprotocol }}"
+      OVERWRITECLIURL: "{{ nextcloud_overwritecliurl }}"
+    volume:
+      - "{{ podman_user_home }}/nextcloud_container_data/appdata/html:/var/www/html:Z"
+      - "{{ podman_user_home }}/nextcloud_container_data/appdata/app:/var/www/html/custom_apps:Z"
+      - "{{ podman_user_home }}/nextcloud_container_data/appdata/config:/var/www/html/config:Z"
+      - "{{ podman_user_home }}/nextcloud_container_data/data:/var/www/html/data:Z"
+    labels:
+      traefik.http.routers.nextcloud.rule: Host(`{{ nextcloud_url }}`)"
+    generate_systemd:
+      path: "{{ podman_user_home }}/.config/systemd/user"
+      restart_policy: always
+      after:
+        - container-nextcloud_mariadb.service
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Nextcloud container must be started and enabled on systemd
+  ansible.builtin.systemd:
+    name: container-nextcloud
+    scope: user
+    daemon_reload: true
+    state: started
+    enabled: true
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ podman_user_uid }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"

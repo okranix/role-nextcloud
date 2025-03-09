@@ -1,0 +1,49 @@
+- name: Ensure appdata directory for nextcloud HTML
+  ansible.builtin.file:
+    path: "{{ podman_user_home }}/nextcloud_container_data/appdata/html"
+    state: directory
+    owner: "{{ podman_user }}"
+    group: "{{ podman_user }}"
+    mode: "0750"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Ensure appdata directory for nextcloud apps
+  ansible.builtin.file:
+    path: "{{ podman_user_home }}/nextcloud_container_data/appdata/app"
+    state: directory
+    owner: "{{ podman_user }}"
+    group: "{{ podman_user }}"
+    mode: "0750"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Ensure appdata directory for nextcloud config
+  ansible.builtin.file:
+    path: "{{ podman_user_home }}/nextcloud_container_data/appdata/config"
+    state: directory
+    owner: "{{ podman_user }}"
+    group: "{{ podman_user }}"
+    mode: "0750"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Ensure nextcloud data directory
+  ansible.builtin.file:
+    path: "{{ podman_user_home }}/nextcloud_container_data/data"
+    state: directory
+    owner: "{{ podman_user }}"
+    group: "{{ podman_user }}"
+    mode: "0750"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Ensure MySQL directory for nextcloud
+  ansible.builtin.file:
+    path: "{{ podman_user_home }}/nextcloud_container_data/mysql"
+    state: directory
+    owner: "{{ podman_user }}"
+    group: "{{ podman_user }}"
+    mode: "0750"
+  become: true
+  become_user: "{{ podman_user }}"

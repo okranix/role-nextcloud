@@ -1,0 +1,60 @@
+- name: Create the nextcloud_network
+  containers.podman.podman_network:
+    name: nextcloud_network
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Configure iptables for published ports
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_ports:
+      - "80"
+      - "443"
+      - "8080"
+    jump: ACCEPT
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: root
+
+- name: Create the podman.socket file
+  ansible.builtin.copy:
+    src: podman.socket
+    dest: /usr/lib/systemd/user/podman.socket
+    mode: "0644"
+    owner: root
+    group: root
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: root
+
+- name: Enable podman.socket
+  ansible.builtin.systemd:
+    scope: user
+    state: started
+    name: podman.socket
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ podman_user_uid }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
+
+- name: Set DOCKER_HOST environment variable
+  ansible.builtin.lineinfile:
+    path: /etc/environment
+    state: present
+    line: "DOCKER_HOST=unix://run/user/{{ podman_user_uid }}/podman/podman.sock"
+    owner: root
+    group: root
+    mode: "0644"
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: root
+
+- name: "Ensure pod autostart after reboot is enabled"
+  ansible.builtin.systemd:
+    name: podman-restart.service
+    enabled: true
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: root
