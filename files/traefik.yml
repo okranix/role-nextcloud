@@ -11,7 +11,9 @@ log:
   level: "WARN"
 
 accessLog: {}
-api: {}
+api:
+  dashboard: true
+  insecure: true
 ping: {}
 
 entryPoints:
