@@ -19,3 +19,7 @@
 - name: Setup nextcloud
   ansible.builtin.include_tasks:
     file: "nextcloud.yml"
+
+- name: Setup traefik
+  ansible.builtin.include_tasks:
+    file: "traefik.yml"

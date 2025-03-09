@@ -1,4 +1,11 @@
-- name: Setup traefik
+- name: "Copy traefik main configuration file"
+  ansible.builtin.copy:
+    src: "traefik.yml"
+    dest: "{{ podman_user_home }}/traefik/traefik.yml"
+    mode: "0640"
+  register: "traefik_base_config"
+
+- name: Create traefik container
   containers.podman.podman_container:
     name: traefik
     conmon_pidfile: "/tmp/traefik_conmon.pid"
@@ -20,7 +27,7 @@
       - --api.insecure=true
       - --providers.docker
     security_opt:
-      - label=disable
+      - label:disable
     labels:
       traefik.enable: "true"
       traefik.http.routers.traefik.rule: "Host(`{{ traefik_api_url }}`)"
@@ -29,6 +36,7 @@
       restart_policy: always
   environment:
     XDG_RUNTIME_DIR: "/run/user/{{ podman_user_uid }}"
+  register: "traefik_creation"
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: "{{ podman_user }}"
@@ -58,3 +66,13 @@
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: root
+
+- name: "Restart traefik if config changed and container was not newly created"
+  ansible.builtin.assert:
+    that: true
+    quiet: true
+  changed_when: true
+  when:
+    - traefik_creation is not changed
+    - traefik_base_config is changed
+  notify: "Podman: Restart traefik"
