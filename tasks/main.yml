@@ -186,6 +186,17 @@
   become: true
   become_user: root
 
+- name: Enable podman.socket
+  ansible.builtin.systemd:
+    scope: user
+    state: started
+    name: podman.socket
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ podman_user_uid }}"
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
+
 - name: Set DOCKER_HOST environment variable
   ansible.builtin.lineinfile:
     path: /etc/environment
@@ -207,25 +218,31 @@
     conmon_pidfile: "/tmp/traefik_conmon.pid"
     image: "{{ traefik_image }}"
     image_strict: true
-    recreate: false
+    recreate: true
     state: started
     user: "{{ podman_user_uid }}"
     userns: keep-id
     network:
       - nextcloud_network
-    ports:
-      - "80:80"
-      - "443:443"
-      - "8080:8080"
+    publish:
+      - "127.0.0.1:80:80"
+      - "127.0.0.1:443:443"
+      - "127.0.0.1:8080:8080"
     volume:
-      - "/run/user/{{ podman_user_uid }}/podman/podman.sock"
-    command: --api.insecure=true --providers.docker
+      - "/run/user/{{ podman_user_uid }}/podman/podman.sock:/var/run/docker.sock:z"
+    command:
+      - --api.insecure=true
+      - --providers.docker
+    security_opt:
+      - label=disable
     labels:
       traefik.enable: "true"
       traefik.http.routers.traefik.rule: "Host(`{{ traefik_api_url }}`)"
     generate_systemd:
       path: "{{ podman_user_home }}/.config/systemd/user"
       restart_policy: always
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ podman_user_uid }}"
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: "{{ podman_user }}"
@@ -252,6 +269,14 @@
       - "443"
       - "8080"
     jump: ACCEPT
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: root
+
+- name: "Ensure pod autostart after reboot is enabled"
+  ansible.builtin.systemd:
+    name: podman-restart.service
+    enabled: true
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: root
