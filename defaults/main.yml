@@ -1,6 +1,8 @@
 ---
 # defaults file for nextcloud_podman_setup
 podman_user: ansible
+# Mountpoint must be inside the above podman_users home direcotry and already mounted or it must be a symlink to the real mountpoint
+mountpoint_name: nextcloud_container_data
 
 # MySQL/MariaDB vars
 mysql_password: ToPSeCrEt2021!

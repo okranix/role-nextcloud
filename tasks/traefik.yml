@@ -45,3 +45,16 @@
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: "{{ podman_user }}"
+
+- name: Configure iptables for published ports
+  ansible.builtin.iptables:
+    chain: INPUT
+    protocol: tcp
+    destination_ports:
+      - "80"
+      - "443"
+      - "8080"
+    jump: ACCEPT
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: root

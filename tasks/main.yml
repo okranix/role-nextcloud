@@ -3,8 +3,8 @@
 - name: Get user information
   ansible.builtin.include_tasks: get_user_info.yml
 
-- name: Ensure podman configuration
-  ansible.builtin.include_tasks: podman.yml
+- name: Configure and start container runtime
+  ansible.builtin.include_tasks: "{{ ansible_distribution }}podman.yml"
 
 - name: Setup data and config directories
   ansible.builtin.include_tasks: setup_directories.yml

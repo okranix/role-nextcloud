@@ -1,21 +1,23 @@
-- name: Create the nextcloud_network
-  containers.podman.podman_network:
-    name: nextcloud_network
-  become: true
-  become_user: "{{ podman_user }}"
-
-- name: Configure iptables for published ports
-  ansible.builtin.iptables:
-    chain: INPUT
-    protocol: tcp
-    destination_ports:
-      - "80"
-      - "443"
-      - "8080"
-    jump: ACCEPT
+- name: "Make sure podman is running and enabled"
+  ansible.builtin.systemd:
+    name: "podman"
+    enabled: true
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: root
+
+- name: Ensure existence of a local podman network
+  containers.podman.podman_network:
+    name: nextcloud_network
+    net_config:
+      - subnet: "10.0.1.0/24"
+        gateway: "10.0.1.1"
+      - subnet: "fd00:c0::/64"
+        gateway: "fd00:c0::1"
+    ipv6: true
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: "{{ podman_user }}"
 
 - name: Create the podman.socket file
   ansible.builtin.copy:

@@ -2,14 +2,15 @@
   ansible.builtin.getent:
     database: passwd
     key: "{{ podman_user }}"
-  ignore_errors: "{{ ansible_check_mode }}"
 
-- name: Set home directory var for deploy user
+- name: Set home directory var for podman user
   ansible.builtin.set_fact:
     podman_user_home: "{{ getent_passwd[podman_user][4] }}"
-  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Set container data direcotry var for podman user
+  ansible.builtin.set_fact:
+    nextcloud_data_dir: "{{ podman_user_home }}/{{ mountpoint_name }}"
 
 - name: Set uid var for deploy user
   ansible.builtin.set_fact:
     podman_user_uid: "{{ getent_passwd[podman_user][1] }}"
-  ignore_errors: "{{ ansible_check_mode }}"
