@@ -16,7 +16,7 @@
       MYSQL_PASSWORD: "{{ mysql_password }}"
       MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
       MYSQL_DATABASE: "nextcloud_db"
-    volume: "{{ podman_user_home }}/nextcloud_container_data/mysql:/var/lib/mysql:Z"
+    volume: "{{ nextcloud_data_dir }}/mysql:/var/lib/mysql:Z"
     generate_systemd:
       path: "{{ podman_user_home }}/.config/systemd/user"
       restart_policy: always
