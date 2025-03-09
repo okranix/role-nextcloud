@@ -37,6 +37,7 @@
     - "80"
     - "443"
     - "8080"
+  ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: "{{ podman_user }}"
 
@@ -53,8 +54,8 @@
     network:
       - nextcloud_network
     publish:
-      # - "127.0.0.1:80:80"
-      # - "127.0.0.1:443:443"
+      - "127.0.0.1:80:80"
+      - "127.0.0.1:443:443"
       - "127.0.0.1:8080:8080"
     volume:
       - "{{ podman_user_home }}/traefik/traefik.yml:/traefik.yml:ro,Z"
