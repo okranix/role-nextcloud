@@ -26,3 +26,15 @@
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: root
+
+- name: Add docker as a container registry
+  ansible.builtin.lineinfile:
+    dest: "/etc/containers/registries.conf"
+    line: 'unqualified-search-registries = ["docker.io"]'
+    owner: root
+    group: root
+    mode: "0644"
+    state: present
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: root
