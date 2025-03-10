@@ -1,9 +1,5 @@
 ---
 # tasks file for nextcloud_podman_setup
-- name: Get user information
-  ansible.builtin.include_tasks:
-    file: "get_user_info.yml"
-
 - name: Configure and start container runtime
   ansible.builtin.include_tasks:
     file: "{{ ansible_distribution }}_cr_start.yml"

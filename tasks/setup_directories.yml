@@ -2,58 +2,58 @@
   ansible.builtin.file:
     path: "{{ nextcloud_data_dir }}/appdata/html"
     state: directory
-    owner: "{{ podman_user }}"
-    group: "{{ podman_user }}"
+    owner: root
+    group: root
     mode: "0750"
   become: true
-  become_user: "{{ podman_user }}"
+  become_user: root
 
 - name: Ensure appdata directory for nextcloud apps
   ansible.builtin.file:
     path: "{{ nextcloud_data_dir }}/appdata/app"
     state: directory
-    owner: "{{ podman_user }}"
-    group: "{{ podman_user }}"
+    owner: root
+    group: root
     mode: "0750"
   become: true
-  become_user: "{{ podman_user }}"
+  become_user: root
 
 - name: Ensure appdata directory for nextcloud config
   ansible.builtin.file:
     path: "{{ nextcloud_data_dir }}/appdata/config"
     state: directory
-    owner: "{{ podman_user }}"
-    group: "{{ podman_user }}"
+    owner: root
+    group: root
     mode: "0750"
   become: true
-  become_user: "{{ podman_user }}"
+  become_user: root
 
 - name: Ensure nextcloud data directory
   ansible.builtin.file:
     path: "{{ nextcloud_data_dir }}/data"
     state: directory
-    owner: "{{ podman_user }}"
-    group: "{{ podman_user }}"
+    owner: root
+    group: root
     mode: "0750"
   become: true
-  become_user: "{{ podman_user }}"
+  become_user: root
 
 - name: Ensure MySQL directory for nextcloud
   ansible.builtin.file:
     path: "{{ nextcloud_data_dir }}/mysql"
     state: directory
-    owner: "{{ podman_user }}"
-    group: "{{ podman_user }}"
+    owner: root
+    group: root
     mode: "0750"
   become: true
-  become_user: "{{ podman_user }}"
+  become_user: root
 
 - name: Ensure traefik config directory
   ansible.builtin.file:
-    path: "{{ podman_user_home }}/traefik"
+    path: "{{ nextcloud_data_dir }}/traefik"
     state: directory
-    owner: "{{ podman_user }}"
-    group: "{{ podman_user }}"
+    owner: root
+    group: root
     mode: "0750"
   become: true
-  become_user: "{{ podman_user }}"
+  become_user: root

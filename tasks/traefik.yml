@@ -1,45 +1,9 @@
 - name: "Copy traefik main configuration file"
   ansible.builtin.copy:
     src: "traefik.yml"
-    dest: "{{ podman_user_home }}/traefik/traefik.yml"
+    dest: "/root/traefik/traefik.yml"
     mode: "0640"
   register: "traefik_base_config"
-
-- name: "Ensure systemd socket proxy for traefik"
-  ansible.builtin.copy:
-    src: "{{ item }}"
-    dest: "{{ podman_user_home }}/.config/systemd/user"
-    owner: "{{ podman_user }}"
-    group: "{{ podman_user }}"
-    mode: "0644"
-  loop:
-    - "container-traefik-proxy-80.socket"
-    - "container-traefik-proxy-443.socket"
-    - "container-traefik-proxy-8080.socket"
-    - "container-traefik-proxy@.service"
-  ignore_errors: "{{ ansible_check_mode }}"
-  become: true
-  become_user: "{{ podman_user }}"
-
-- name: Systemd daemon reload
-  ansible.builtin.systemd_service:
-    daemon_reload: true
-    scope: user
-  become: true
-  become_user: "{{ podman_user }}"
-
-- name: Start and enable socket proxy
-  ansible.builtin.systemd_service:
-    name: "container-traefik-proxy-{{ item }}.socket"
-    scope: user
-    state: started
-  loop:
-    - "80"
-    - "443"
-    - "8080"
-  ignore_errors: "{{ ansible_check_mode }}"
-  become: true
-  become_user: "{{ podman_user }}"
 
 - name: Create traefik container
   containers.podman.podman_container:
@@ -54,49 +18,38 @@
     network:
       - nextcloud_network
     publish:
-      - "127.0.0.1:80:80"
-      - "127.0.0.1:443:443"
-      - "127.0.0.1:8080:8080"
+      - "80:80"
+      - "443:443"
     volume:
-      - "{{ podman_user_home }}/traefik/traefik.yml:/traefik.yml:ro,Z"
-      - "{{ podman_user_home }}/traefik:/config:ro,Z"
-      - "/run/user/{{ podman_user_uid }}/podman/podman.sock:/var/run/docker.sock:z"
-    command:
-      - --api.insecure=true
-      - --providers.docker.exposedByDefault=false
-      - --providers.docker.endpoint=tcp://container-traefik-proxy-80.socket:80
-      - --providers.docker.endpoint=tcp://container-traefik-proxy-443.socket:443
-      - --providers.docker.endpoint=tcp://container-traefik-proxy-8080.socket:8080
+      - "/root/traefik/traefik.yml:/traefik.yml:ro,Z"
+      - "/root/traefik:/config:ro,Z"
+      - "/var/run/podman/podman.sock:/var/run/docker.sock:ro,z"
+      - "/etc/localtime:/etc/localtime"
     security_opt:
       - "label:type:container_runtime_t"
-    labels:
-      traefik.enable: "true"
-      entrypoints.web.address: "80"
-      entrypoints.websecure.address: "443"
-      entrypoints.dashboard.address: "8080"
-      traefik.http.routers.traefik.rule: "Host(`{{ traefik_api_url }}`)"
     generate_systemd:
-      path: "{{ podman_user_home }}/.config/systemd/user"
+      path: "/etc/containers/systemd/"
       restart_policy: always
-  environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ podman_user_uid }}"
   register: "traefik_creation"
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
-  become_user: "{{ podman_user }}"
+  become_user: root
+
+- name: Reload systemd
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  become: true
+  become_user: root
 
 - name: Traefik container must be started and enabled on systemd
   ansible.builtin.systemd:
     name: container-traefik
-    scope: user
     daemon_reload: true
     state: started
     enabled: true
-  environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ podman_user_uid }}"
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
-  become_user: "{{ podman_user }}"
+  become_user: root
 
 - name: Configure iptables for published ports
   ansible.builtin.iptables:

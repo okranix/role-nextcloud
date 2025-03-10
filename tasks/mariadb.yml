@@ -1,14 +1,12 @@
 - name: Create MariaDB container
   containers.podman.podman_container:
     debug: true
-    conmon_pidfile: "/tmp/mariadb_conmon.pid"
     image: "{{ mariadb_image }}"
     image_strict: true
+    detach: true
     recreate: false
     state: started
     name: "nextcloud_mariadb"
-    user: "{{ podman_user_uid }}"
-    userns: keep-id
     network:
       - nextcloud_network
     env:
@@ -16,27 +14,33 @@
       MYSQL_PASSWORD: "{{ mysql_password }}"
       MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
       MYSQL_DATABASE: "nextcloud_db"
-    volume: "{{ nextcloud_data_dir }}/mysql:/var/lib/mysql:Z"
+    volumes:
+      - "{{ nextcloud_data_dir }}/mysql:/var/lib/mysql:Z"
+      - "/var/run/podman/podman.sock:/var/run/docker.sock:ro,z"
+      - "/etc/localtime:/etc/localtime"
     generate_systemd:
-      path: "{{ podman_user_home }}/.config/systemd/user"
+      path: "/etc/containers/systemd/"
       restart_policy: always
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
-  become_user: "{{ podman_user }}"
+  become_user: root
 
 - name: Wait for DB to initilize
   ansible.builtin.wait_for:
     timeout: 20
 
+- name: Reload systemd
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+  become: true
+  become_user: root
+
 - name: MariaDB container must be started and enabled on systemd
   ansible.builtin.systemd:
     name: container-nextcloud_mariadb
-    scope: user
     daemon_reload: true
     state: started
     enabled: true
-  environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ podman_user_uid }}"
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
-  become_user: "{{ podman_user }}"
+  become_user: root
