@@ -27,26 +27,7 @@
       - "/etc/localtime:/etc/localtime"
     security_opt:
       - "label:type:container_runtime_t"
-    generate_systemd:
-      path: "/etc/containers/systemd/"
-      restart_policy: always
   register: "traefik_creation"
-  ignore_errors: "{{ ansible_check_mode }}"
-  become: true
-  become_user: root
-
-- name: Reload systemd
-  ansible.builtin.systemd_service:
-    daemon_reload: true
-  become: true
-  become_user: root
-
-- name: Traefik container must be started and enabled on systemd
-  ansible.builtin.systemd:
-    name: container-traefik
-    daemon_reload: true
-    state: started
-    enabled: true
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: root

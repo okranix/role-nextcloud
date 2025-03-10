@@ -34,27 +34,6 @@
       - "/etc/localtime:/etc/localtime"
     labels:
       traefik.http.routers.nextcloud.rule: Host(`{{ nextcloud_url }}`)"
-    generate_systemd:
-      path: "/etc/containers/systemd/"
-      restart_policy: always
-      after:
-        - container-nextcloud_mariadb.service
-  ignore_errors: "{{ ansible_check_mode }}"
-  become: true
-  become_user: root
-
-- name: Reload systemd
-  ansible.builtin.systemd_service:
-    daemon_reload: true
-  become: true
-  become_user: root
-
-- name: Nextcloud container must be started and enabled on systemd
-  ansible.builtin.systemd:
-    name: container-nextcloud
-    daemon_reload: true
-    state: started
-    enabled: true
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: root
