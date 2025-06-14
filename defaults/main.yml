@@ -7,7 +7,7 @@ nextcloud_data_dir: /root/nextcloud_container_data
 # MySQL/MariaDB vars
 mysql_password: ToPSeCrEt2021!
 mysql_root_password: ToPSeCrEt2021!
-mysql_host: localhost
+mysql_host: nextcloud_mariadb
 
 # Vars for MariaDB container
 mariadb_image: docker.io/mariadb:11.4.5
@@ -17,7 +17,7 @@ nextcloud_admin_password: VSnfD2021!
 nextcloud_url: nextcloud.mydomain.local
 nextcloud_overwriteprotocol: ""
 nextcloud_overwritecliurl: ""
-nextcloud_trusted_domains: ""
+nextcloud_trusted_domains: "mydomain.com"
 
 # SMTP vars
 smtp_host: "smtp.example.com"

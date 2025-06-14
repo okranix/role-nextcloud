@@ -23,7 +23,7 @@
     conmon_pidfile: "/tmp/traefik_conmon.pid"
     image: "{{ traefik_image }}"
     image_strict: true
-    recreate: true
+    recreate: false
     state: started
     network:
       - nextcloud_network
@@ -37,6 +37,13 @@
       - "/etc/localtime:/etc/localtime"
     security_opt:
       - "label:type:container_runtime_t"
+    labels:
+      traefik.enable: true
+      traefik.http.services.traefik.loadbalancer.server.port: "8080" # update to actual port
+      traefik.http.routers.traefik-https.rule: Host(`api.riz-rpi-001.riz.internal`)
+      traefik.http.routers.traefik-https.entrypoints: https
+      traefik.http.routers.traefik_https.service: api@internal
+      traefik.http.routers.traefik-https.tls: true
   register: "traefik_creation"
   ignore_errors: "{{ ansible_check_mode }}"
   become: true

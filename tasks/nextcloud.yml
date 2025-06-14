@@ -2,11 +2,15 @@
   containers.podman.podman_container:
     image: "{{ nextcloud_image }}"
     image_strict: true
-    recreate: false
+    recreate: true
     state: started
     name: "nextcloud"
     network:
       - nextcloud_network
+    uidmap:
+      - "0:33:33"
+    gidmap:
+      - "0:33:33"
     env:
       MYSQL_DATABASE: "nextcloud_db"
       MYSQL_USER: "nextcloud"
@@ -25,6 +29,8 @@
       MAIL_DOMAIN: "{{ mail_domain }}"
       OVERWRITEPROTOCOL: "{{ nextcloud_overwriteprotocol }}"
       OVERWRITECLIURL: "{{ nextcloud_overwritecliurl }}"
+      PUID: "33"
+      PGID: "33"
     volumes:
       - "{{ nextcloud_data_dir }}/appdata/html:/var/www/html:Z"
       - "{{ nextcloud_data_dir }}/appdata/app:/var/www/html/custom_apps:Z"
@@ -33,7 +39,11 @@
       - "/var/run/podman/podman.sock:/var/run/docker.sock:ro,z"
       - "/etc/localtime:/etc/localtime"
     labels:
-      traefik.http.routers.nextcloud.rule: Host(`{{ nextcloud_url }}`)"
+      traefik.enable: true
+      traefik.http.services.nextcloud.loadbalancer.server.port: "80" # update to actual port
+      traefik.http.routers.nextcloud-https.rule: Host(`nextcloud.riz-rpi-001.riz.internal`)
+      traefik.http.routers.nextcloud-https.entrypoints: https
+      traefik.http.routers.nextcloud-https.tls: true
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: root

@@ -2,8 +2,8 @@
   ansible.builtin.file:
     path: "{{ nextcloud_data_dir }}/appdata/html"
     state: directory
-    owner: root
-    group: root
+    owner: www-data
+    group: www-data
     mode: "0750"
   become: true
   become_user: root
@@ -12,8 +12,8 @@
   ansible.builtin.file:
     path: "{{ nextcloud_data_dir }}/appdata/app"
     state: directory
-    owner: root
-    group: root
+    owner: www-data
+    group: www-data
     mode: "0750"
   become: true
   become_user: root
@@ -22,8 +22,8 @@
   ansible.builtin.file:
     path: "{{ nextcloud_data_dir }}/appdata/config"
     state: directory
-    owner: root
-    group: root
+    owner: www-data
+    group: www-data
     mode: "0750"
   become: true
   become_user: root

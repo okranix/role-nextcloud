@@ -13,7 +13,6 @@ log:
 accessLog: {}
 api:
   dashboard: true
-  insecure: true
 ping: {}
 
 entryPoints:
@@ -21,12 +20,12 @@ entryPoints:
     address: ":443"
   http:
     address: ":80"
-#    http:
-#      redirections:
-#        entryPoint:
-#          to: "https"
-#          scheme: "https"
-#          permanent: true
+    http:
+      redirections:
+        entryPoint:
+          to: "https"
+          scheme: "https"
+          permanent: true
 
 providers:
   docker:
