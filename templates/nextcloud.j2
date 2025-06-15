@@ -1,0 +1,60 @@
+---
+
+# remember to call this via cron:
+# docker exec --user www-data oxicloud-nextcloud php occ background:cron
+
+volumes:
+  nextcloud:
+  custom_apps:
+
+services:
+  db:
+    image: {{ nc_db_image }}
+    container_name: {{ nc_db_container_name }}
+    # ports:
+    #   - 3306:3306
+    networks:
+      - nextcloud
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW
+    restart: always
+    volumes:
+      - /opt/nextcloud_container_data/db:/var/lib/mysql
+      - /opt/nextcloud_container_data/mariadb_conf/custom.cnf:/etc/mysql/mariadb.conf.d/99-custom.cnf
+    environment:
+      - MYSQL_ROOT_PASSWORD={{ nc_db_root_pw }}
+      - MYSQL_PASSWORD={{ nc_db_pw }}
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MARIADB_AUTO_UPGRADE=true
+
+  app:
+    image: {{ nc_image }}
+    container_name: {{ nc_container_name }}
+    ports:
+      - 8088:80
+    networks:
+      - nextcloud
+    volumes:
+      - nextcloud:/var/www/html
+      - custom_apps:/var/www/html/custom_apps
+      - /opt/nextcloud_container_data/data:/var/www/html/data
+      - /opt/nextcloud_container_data/nextcloud_conf:/var/www/html/config:rw
+    tmpfs:
+      - /tmp:exec,mode=777
+    environment:
+      - PHP_MEMORY_LIMIT=1024M
+      - PHP_UPLOAD_LIMIT=1024M
+    restart: always
+    depends_on:
+      - db
+      - redis
+
+  redis:
+    image: {{ nc_redis_image }}
+    container_name: {{ nc_redis_container_name }}
+    networks:
+      - nextcloud
+    restart: always
+
+networks:
+  nextcloud:

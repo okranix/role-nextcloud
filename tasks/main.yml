@@ -1,9 +1,9 @@
 ---
 # tasks file for nextcloud_podman_setup
-- name: Configure and start container runtime
-  ansible.builtin.include_tasks:
-    file: "{{ ansible_distribution }}_cr_start.yml"
+# - name: Configure and start container runtime
+#   ansible.builtin.include_tasks:
+#     file: "{{ ansible_distribution }}_cr_start.yml"
 
-#- name: Setup data and config directories
-#  ansible.builtin.include_tasks:
-#    file: "setup_directories.yml"
+- name: Deploy nextcloud docker compose and nextcloud config.php
+  ansible.builtin.include_tasks:
+    file: nextcloud.yml

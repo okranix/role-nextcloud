@@ -1,0 +1,91 @@
+<?php
+$CONFIG = array (
+  'defaultapp' => 'files',
+  'instanceid' => 'xxx', # wird generiert
+  'passwordsalt' => 'xxx', # wird generiert
+  'datadirectory' => '/var/www/html/data',
+  'dbtype' => 'mysql',
+  'version' => '31.0.6.2',
+  'dbname' => 'nextcloud',
+  'dbhost' => 'db:3306',
+  'dbtableprefix' => 'oc_',
+  'dbuser' => 'nextcloud',
+  'dbpassword' => '{{ nc_db_pw }}',
+  'installed' => true,
+  'forcessl' => true,
+  'theme' => '',
+  'maintenance' => false,
+  'maintenance_window_start' => 2,
+  'overwriteprotocol' => 'https',
+  'default_phone_region' => 'ISO 3166-2:CH',
+  'enable_previews' => true,
+  'trusted_domains' => 
+  array (
+    0 => '{{ nc_trusted_domain }}',
+  ),
+  'trusted_proxies' => 
+  array (
+    0 => '127.0.0.1',
+  ),
+  'mail_smtpmode' => 'smtp',
+  'mail_from_address' => '{{ nc_mail_from }}',
+  'mail_domain' => '{{ nc_mail_domain }}',
+  'ldapIgnoreNamingRules' => false,
+  'secret' => 'random_generated?',
+  'memcache.locking' => '\\OC\\Memcache\\Redis',
+  'memcache.local' => '\\OC\\Memcache\\APCu',
+  'redis' => 
+  array (
+    'host' => 'redis',
+    'port' => 6379,
+  ),
+  'loglevel' => 2,
+  'trashbin_retention_obligation' => '90, 180',
+  'htaccess.RewriteBase' => '/',
+  'overwrite.cli.url' => '{{ nc_overwrite_cli_url }}',
+  'auth.bruteforce.protection.enabled' => false,
+  'mail_smtphost' => 'mail.infomaniak.com',
+  'mail_smtpsecure' => 'ssl',
+  'mail_smtpport' => '465',
+  'mail_smtpauth' => 1,
+  'mail_smtpname' => '{{ nc_mail_smpt_name }}',
+  'mail_smtppassword' => '{{ nc_mail_smpt_pw }}',
+  'updater.release.channel' => 'stable',
+  'app_install_overwrite' => 
+  array (
+    0 => 'keeweb',
+    1 => 'forms',
+  ),
+  'encryption.key_storage_migrated' => false,
+  'apps_paths' => 
+  array (
+    0 => 
+    array (
+      'path' => '/var/www/html/apps',
+      'url' => '/apps',
+      'writable' => false,
+    ),
+    1 => 
+    array (
+      'path' => '/var/www/html/custom_apps',
+      'url' => '/custom_apps',
+      'writable' => true,
+    ),
+  ),
+  'mysql.utf8mb4' => true,
+  'memories.exiftool' => '/var/www/html/custom_apps/memories/bin-ext/exiftool-amd64-glibc',
+  'memories.vod.path' => '/var/www/html/custom_apps/memories/bin-ext/go-vod-amd64',
+  'enabledPreviewProviders' => 
+  array (
+    0 => 'OC\\Preview\\Image',
+    1 => 'OC\\Preview\\Movie',
+  ),
+  'preview_max_memory' => 256,
+  'memories.vod.bind' => 'go-vod:47788',
+  'memories.vod.connect' => 'go-vod:47788',
+  'memories.vod.external' => true,
+  'preview_ffmpeg_path' => '/var/www/html/custom_apps/recognize/node_modules/ffmpeg-static/ffmpeg',
+  'memories.db.triggers.fcu' => true,
+  'memories.gis_type' => 1,
+  'upgrade.disable-web' => true,
+);

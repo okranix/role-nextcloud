@@ -1,2 +1,22 @@
 ---
-nextcloud_data_dir: /root/nextcloud_container_data
+# Database for nextcloud
+nc_db_image: mariadb:11.2
+nc_db_container_name: nc_mariadb
+nc_db_root_pw: super_secret_root_pw
+nc_db_pw: super_secret_pw
+
+# Nextcloud container
+nc_image: nextcloud:stable
+nc_container_name: nextcloud
+
+# Redis for nextcloud
+nc_redis_image: redis:alpine
+nc_redis_container_name: nc_redis
+
+# Nextcloud config.php
+nc_trusted_domain: cloud.example.com # for more then one edit the play
+nc_mail_from: cloud
+nc_mail_domain: example.com
+nc_mail_smpt_name: cloud@example.com
+nc_mail_smpt_pw: super_secret_smpt_pw
+nc_overwrite_cli_url: http://cloud.example.com

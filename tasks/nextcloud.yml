@@ -1,0 +1,20 @@
+---
+- name: Deploy nextcloud docker compose
+  ansible.builtin.template:
+    src: nextcloud.j2
+    dest: /opt/nextcloud_container_data/nextcloud.yml
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  become_user: root
+
+- name: Deploy nextcloud config.php
+  ansible.builtin.template:
+    src: config.j2
+    dest: /opt/nextcloud_container_data/nextcloud_conf/config.php
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  become_user: root
