@@ -4,18 +4,6 @@
   ansible.builtin.include_tasks:
     file: "{{ ansible_distribution }}_cr_start.yml"
 
-- name: Setup data and config directories
-  ansible.builtin.include_tasks:
-    file: "setup_directories.yml"
-
-- name: Setup mariadb
-  ansible.builtin.include_tasks:
-    file: "mariadb.yml"
-
-- name: Setup nextcloud
-  ansible.builtin.include_tasks:
-    file: "nextcloud.yml"
-
-- name: Setup traefik
-  ansible.builtin.include_tasks:
-    file: "traefik.yml"
+#- name: Setup data and config directories
+#  ansible.builtin.include_tasks:
+#    file: "setup_directories.yml"

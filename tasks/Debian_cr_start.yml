@@ -1,40 +1,61 @@
-- name: "Make sure podman is running and enabled"
-  ansible.builtin.systemd:
-    name: "podman"
-    enabled: true
-  ignore_errors: "{{ ansible_check_mode }}"
+- name: Ensure prerquisite packages
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - python3-debian
+    state: present
   become: true
   become_user: root
 
-- name: Ensure existence of a local podman network
-  containers.podman.podman_network:
-    name: nextcloud_network
-    net_config:
-      - subnet: "10.0.1.0/24"
-        gateway: "10.0.1.1"
-      - subnet: "fd00:c0::/64"
-        gateway: "fd00:c0::1"
-    ipv6: true
-  ignore_errors: "{{ ansible_check_mode }}"
-  become: true
-  become_user: root
-
-- name: "Ensure pod autostart after reboot is enabled"
-  ansible.builtin.systemd:
-    name: podman-restart.service
-    enabled: true
-  ignore_errors: "{{ ansible_check_mode }}"
-  become: true
-  become_user: root
-
-- name: Add docker as a container registry
-  ansible.builtin.lineinfile:
-    dest: "/etc/containers/registries.conf"
-    line: 'unqualified-search-registries = ["docker.io"]'
+- name: Get docker repository GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/debian/gpg
+    dest: /usr/share/keyrings/docker_key.gpg_armored
+    checksum: sha256:1500c1f56fa9e26b9b8f42452a553675796ade0807cdce11975eb98170b3a570 # curl -sL https://download.docker.com/linux/ubuntu/gpg|sha256sum
+    mode: "0644"
     owner: root
     group: root
-    mode: "0644"
+    force: true
+  become: true
+  become_user: root
+
+- name: De-Armor docker GPG key
+  ansible.builtin.shell: "gpg --dearmor < /usr/share/keyrings/docker_key.gpg_armored > /usr/share/keyrings/docker_key.gpg"
+  args:
+    creates: /usr/share/keyrings/docker_key.gpg
+  no_log: true
+  ignore_errors: "{{ ansible_check_mode }}"
+  become: true
+  become_user: root
+
+- name: Add Docker repository
+  ansible.builtin.deb822_repository:
+    name: docker
+    types:
+      - deb
+    uris: https://download.docker.com/linux/debian
+    architectures:
+      - arm64
+    components:
+      - stable
+    suites:
+      - "{{ ansible_distribution_release }}"
+    signed_by: /usr/share/keyrings/docker_key.gpg
     state: present
+    enabled: true
+  become: true
+  become_user: root
+
+- name: Install Docker packages
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
   ignore_errors: "{{ ansible_check_mode }}"
   become: true
   become_user: root
